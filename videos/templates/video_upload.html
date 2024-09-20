@@ -1,11 +1,337 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ video.title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <!-- Meta Description -->
+    <meta name="description" content="CreatorsSphere: Your ultimate platform for digital content creators. Connect, collaborate, and grow your online presence. Join our community of innovators, artists, and influencers today!">
+    
+    <!-- Meta Keywords -->
+    <meta name="keywords" content="content creators, digital platform, online community, social media, influencers, collaboration, creative network, content marketing, digital artists, vloggers, bloggers, podcasters, YouTubers, social media influencers">
+    
+    <!-- Other important meta tags -->
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="CreatorsSphere">
+    
+    
+     <!-- Favicons -->
+  <link href="/static/img/Final Logo For All.jpg" rel="icon">
+  <link href="/static/img/SC01.jpeg" rel="apple-touch-icon">  
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <style>
+        .plyr__video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%; /* Aspect Ratio 16:9 */
+            height: 0;
+            border-radius: 15px; /* Curved corners */
+        }
 
-{% block content %}
-  <h1>Upload Video</h1>
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Upload</button>
-  </form>
-  <a href="{% url 'video_list' %}">Back to Video List</a>
-{% endblock %}
+        .plyr__video-wrapper iframe,
+        .plyr__video-wrapper video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 15px; /* Curved corners */
+        }
+
+        .plyr--full-ui input[type="range"] {
+            color: #ca4cb7; /* YouTube-like red color */
+        }
+
+        .plyr__controls button {
+            background-color: transparent;
+            border: none;
+        }
+
+        .btn-like-dislike {
+            border: none;
+            background-color: transparent;
+            color: inherit;
+        }
+
+        .description-container {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .description-content {
+            max-height: 4.5em; /* Adjust height to fit approximately 3 lines of text */
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .description-container.expanded .description-content {
+            max-height: none;
+        }
+
+        .show-more-btn {
+            background: none;
+            border: none;
+            color: #007bff;
+            cursor: pointer;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            font-size: 0.875rem;
+            padding: 0;
+            margin: 0;
+            text-decoration: underline;
+        }
+
+        .video-list {
+            padding: 0;
+            margin: 0;
+            list-style-type: none;
+        }
+
+        .video-item {
+            position: relative;
+            margin-bottom: 1rem;
+            border-radius: 15px; /* Curved corners */
+            overflow: hidden; /* Ensures content does not spill outside the curved borders */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional shadow for better visual appeal */
+        }
+
+        .video-item img,
+        .video-item video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .video-item h5 {
+            margin-top: 0.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .video-item a {
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+            display: block;
+        }
+
+        .video-preview {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+        }
+
+        .video-preview video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-item:hover .video-preview {
+            display: block;
+        }
+
+        /* New styles for landscape mode */
+        @media screen and (max-width: 767px) {
+            .video-player-wrapper.fullscreen {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 9999;
+                background: #000;
+            }
+
+            .video-player-wrapper.fullscreen .plyr__video-wrapper {
+                padding-bottom: 56.25%;
+                height: 100%;
+            }
+
+            .video-player-wrapper.fullscreen .plyr__video-wrapper iframe,
+            .video-player-wrapper.fullscreen .plyr__video-wrapper video {
+                width: 100%;
+                height: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-8">
+                <!-- YouTube-like Video Player -->
+                <div class="video-player-wrapper">
+                    <div id="video-player">
+                        <video id="player" playsinline controls controlsList="nodownload">
+                            <source src="{{ video.video_file.url }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                </div>
+                
+                <!-- Video Details -->
+                <h3>{{ video.title }}</h3>
+                <p>{{ video.view_count }} views • {{ video.uploaded_at|date:"F d, Y" }}</p>
+                <br>
+                <div class="description-container {% if video.description|length > 100 %}expanded{% endif %}">
+                    <p class="description-content {% if video.description|length > 100 %}show-more{% endif %}">{{ video.description }}</p>
+                    {% if video.description|length > 100 %}
+                        <button class="show-more-btn" onclick="toggleDescription()">
+                            {% if description_expanded %}Show Less{% else %}Show More{% endif %}
+                        </button>
+                    {% endif %}
+                </div>
+                <br>
+                
+                <!-- Like and Dislike Buttons -->
+                <div class="d-flex align-items-center my-3">
+                    <button id="like-btn" class="btn btn-like-dislike me-2" data-url="{% url 'like_video' video.pk %}">
+                        👍 Like (<span id="like-count">{{ video.likes }}</span>)
+                    </button>
+                    <button id="dislike-btn" class="btn btn-like-dislike" data-url="{% url 'dislike_video' video.pk %}">
+                        👎 Dislike (<span id="dislike-count">{{ video.dislikes }}</span>)
+                    </button>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="comments-section my-4">
+                    <h5>Comments ({{ video.comments.count }})</h5>
+                    <ul class="list-group mb-3">
+                        {% for comment in comments %}
+                            <li class="list-group-item">
+                                <strong>{{ comment.user }}</strong> <small class="text-muted">on {{ comment.timestamp|date:"F d, Y H:i" }}</small>
+                                <p>{{ comment.content }}</p>
+                            </li>
+                        {% empty %}
+                            <li class="list-group-item">No comments yet. Be the first to comment!</li>
+                        {% endfor %}
+                    </ul>
+
+                    <!-- Add a Comment -->
+                    <form method="POST" class="mb-3">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="user" class="form-label">Name</label>
+                            <input type="text" name="user" id="user" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="content" class="form-label">Comment</label>
+                            <textarea name="content" id="content" rows="3" class="form-control" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Comment</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Other Videos -->
+            <div class="col-md-4">
+                <h4>Other Videos</h4>
+                <ul class="video-list">
+                    {% for other_video in other_videos %}
+                        <li class="video-item">
+                            <a href="{% url 'video_detail' other_video.pk %}" class="video-item-link">
+                                <img src="{{ other_video.thumbnail.url }}" alt="{{ other_video.title }}">
+                                <h5>{{ other_video.title }}</h5>
+                                <!-- Preview Video -->
+                                <div class="video-preview">
+                                    <video muted>
+                                        <source src="{{ other_video.video_file.url }}" type="video/mp4">
+                                    </video>
+                                </div>
+                            </a>
+                        </li>
+                    {% empty %}
+                        <p>No other videos available.</p>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const playerWrapper = document.querySelector('.video-player-wrapper');
+            const player = new Plyr('#player', {
+                controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'],
+                settings: ['captions', 'quality', 'speed', 'loop'],
+                quality: {
+                    default: 720,
+                    options: [1080, 720, 480, 360],
+                    forced: true,
+                    onChange: (quality) => {
+                        console.log(`Quality changed to ${quality}`);
+                    },
+                },
+                disableContextMenu: true,
+            });
+
+            // Handle fullscreen change
+            player.on('enterfullscreen', () => {
+                if (window.matchMedia("(max-width: 767px)").matches) {
+                    playerWrapper.classList.add('fullscreen');
+                    screen.orientation.lock('landscape').catch(() => {
+                        console.log('Orientation lock not supported');
+                    });
+                }
+            });
+
+            player.on('exitfullscreen', () => {
+                playerWrapper.classList.remove('fullscreen');
+                screen.orientation.unlock();
+            });
+
+            // Like Button Click Event
+            document.getElementById('like-btn').addEventListener('click', function() {
+                const url = this.getAttribute('data-url');
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('like-count').innerText = data.likes;
+                    });
+            });
+
+            // Dislike Button Click Event
+            document.getElementById('dislike-btn').addEventListener('click', function() {
+                const url = this.getAttribute('data-url');
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('dislike-count').innerText = data.dislikes;
+                    });
+            });
+
+            // Hover Event for Video Preview
+            document.querySelectorAll('.video-item').forEach(item => {
+                const preview = item.querySelector('.video-preview video');
+                item.addEventListener('mouseover', () => {
+                    preview.play();
+                });
+                item.addEventListener('mouseout', () => {
+                    preview.pause();
+                    preview.currentTime = 0;
+                });
+            });
+        });
+
+        function toggleDescription() {
+            const container = document.querySelector('.description-container');
+            const button = document.querySelector('.show-more-btn');
+            container.classList.toggle('expanded');
+            if (container.classList.contains('expanded')) {
+                button.textContent = 'Show Less';
+            } else {
+                button.textContent = 'Show More';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -5,7 +5,7 @@ from django.http import JsonResponse
 
 def video_list(request):
     videos = Video.objects.all().order_by('-uploaded_at')
-    return render(request, 'videos/templates/video_list.html', {'videos': videos})
+    return render(request, 'video_list.html', {'videos': videos})
 
 def upload_video(request):
     if request.method == 'POST':
@@ -15,7 +15,7 @@ def upload_video(request):
             return redirect('video_list')
     else:
         form = VideoForm()
-    return render(request, 'videos/templates/upload_video.html', {'form': form})
+    return render(request, 'upload_video.html', {'form': form})
 
 def video_detail(request, pk):
     video = get_object_or_404(Video, pk=pk)
@@ -37,7 +37,7 @@ def video_detail(request, pk):
     # Fetch other videos except the current one
     other_videos = Video.objects.exclude(pk=pk).order_by('-uploaded_at')[:6]
 
-    return render(request, 'videos/templates/video_detail.html', {
+    return render(request, 'video_detail.html', {
         'video': video,
         'comments': comments,
         'comment_form': comment_form,

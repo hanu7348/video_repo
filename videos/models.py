@@ -23,8 +23,8 @@ class Video(models.Model):
 
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    thumbnail = models.ImageField(upload_to='thumbnails/', blank=True, null=True)
-    video_file = models.FileField(upload_to='videos/', validators=[validate_video_extension])
+    thumbnail = models.ImageField(upload_to='thumbnails/', blank=True, null=True, storage=S3Boto3Storage())
+    video_file = models.FileField(upload_to='videos/', validators=[validate_video_extension], storage=S3Boto3Storage())
     video_format = models.CharField(max_length=4, choices=VIDEO_FORMATS, editable=False)
     view_count = models.IntegerField(default=0)
     likes = models.IntegerField(default=0)

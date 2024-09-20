@@ -1,8 +1,10 @@
-# urls.py (in the videos app)
 from django.urls import path
-from .views import VideoListView, VideoUploadView
+from . import views
 
 urlpatterns = [
-    path('', VideoListView.as_view(), name='video_list'),
-    path('upload/', VideoUploadView.as_view(), name='video_upload'),
+    path('', views.video_list, name='video_list'),
+    path('upload/', views.upload_video, name='upload_video'),
+    path('video/<int:pk>/', views.video_detail, name='video_detail'),
+    path('video/<int:pk>/like/', views.update_likes_dislikes, {'action': 'like'}, name='like_video'),
+    path('video/<int:pk>/dislike/', views.update_likes_dislikes, {'action': 'dislike'}, name='dislike_video'),
 ]

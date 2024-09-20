@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>Videos</h1>
+  <a href="{% url 'video_upload' %}">Upload New Video</a>
+  <ul>
+    {% for video in videos %}
+      <li>
+        <h2>{{ video.title }}</h2>
+        {% if video.description %}
+          <p>{{ video.description }}</p>
+        {% endif %}
+        <p>Uploaded on: {{ video.uploaded_at|date:"F d, Y" }}</p>
+        <video width="320" height="240" controls>
+          <source src="{{ video.file.url }}" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </li>
+    {% empty %}
+      <li>No videos uploaded yet.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

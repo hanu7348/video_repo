@@ -1,6 +1,8 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 import os
+from storages.backends.s3boto3 import S3Boto3Storage
+
 
 def validate_video_extension(value):
     valid_extensions = ['.mp4', '.avi', '.mov', '.flv', '.wmv', '.webm', '.mkv']

@@ -1,8 +1,12 @@
-# forms.py
 from django import forms
-from .models import Video
+from .models import Video, Comment
 
-class VideoUploadForm(forms.ModelForm):
+class VideoForm(forms.ModelForm):
     class Meta:
         model = Video
-        fields = ['title', 'description', 'file']
+        fields = ['title', 'description', 'thumbnail', 'video_file']
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['user', 'content']

@@ -15,7 +15,7 @@ def upload_video(request):
             return redirect('video_list')
     else:
         form = VideoForm()
-    return render(request, 'upload_video.html', {'form': form})
+    return render(request, 'video_upload.html', {'form': form})
 
 def video_detail(request, pk):
     video = get_object_or_404(Video, pk=pk)

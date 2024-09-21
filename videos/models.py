@@ -3,12 +3,14 @@ from django.core.exceptions import ValidationError
 import os
 from storages.backends.s3boto3 import S3Boto3Storage
 
-
 def validate_video_extension(value):
     valid_extensions = ['.mp4', '.avi', '.mov', '.flv', '.wmv', '.webm', '.mkv']
     ext = os.path.splitext(value.name)[1].lower()
     if ext not in valid_extensions:
         raise ValidationError(f'Unsupported file extension. Allowed extensions are: {", ".join(valid_extensions)}')
+
+class S3MediaStorage(S3Boto3Storage):
+    location = 'media'
 
 class Video(models.Model):
     VIDEO_FORMATS = [
@@ -23,9 +25,9 @@ class Video(models.Model):
 
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    thumbnail = models.ImageField(upload_to='thumbnails/', blank=True, null=True)
-    video_file = models.FileField(upload_to='videos/', validators=[validate_video_extension], storage=S3Boto3Storage(), null=True)
-    video_format = models.CharField(max_length=4, choices=VIDEO_FORMATS, editable=False, null=True)  # Made nullable
+    thumbnail = models.ImageField(upload_to='thumbnails/', blank=True, null=True, storage=S3MediaStorage())
+    video_file = models.FileField(upload_to='videos/', validators=[validate_video_extension], storage=S3MediaStorage())
+    video_format = models.CharField(max_length=4, choices=VIDEO_FORMATS, editable=False)
     view_count = models.IntegerField(default=0)
     likes = models.IntegerField(default=0)
     dislikes = models.IntegerField(default=0)
